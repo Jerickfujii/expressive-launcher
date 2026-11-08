@@ -32,8 +32,16 @@ jobs:
           fi
           echo "PROJECT_DIR=$(dirname "$GRADLEW")" >> "$GITHUB_ENV"
 
-      - name: Apply source fix
-        run: cp MainActivity.kt "$(find source -type f -name MainActivity.kt -print -quit)"
+      - name: Apply uploaded Kotlin source files
+        run: |
+          for file in *.kt; do
+            [ -f "$file" ] || continue
+            target="$(find source -type f -name "$file" -print -quit)"
+            if [ -n "$target" ]; then
+              cp "$file" "$target"
+              echo "Applied $file to $target"
+            fi
+          done
 
       - name: Build APK
         run: |
