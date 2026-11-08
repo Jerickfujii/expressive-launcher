@@ -287,7 +287,7 @@ fun AppDrawer(
             Modifier
                 .fillMaxSize()
                 .graphicsLayer {
-                    val radius = menuBlur * 22.dp.toPx() * settings.blurStrength
+                    val radius = menuBlur * (if (isZteBladeA75()) 10.dp.toPx() else 22.dp.toPx()) * settings.blurStrength
                     renderEffect = if (radius > 0.5f) androidx.compose.ui.graphics.BlurEffect(radius, radius, androidx.compose.ui.graphics.TileMode.Decal) else null
                 }
                 // Панель отмеченных приложений размывает список под собой
