@@ -34,6 +34,35 @@ jobs:
           MAIN_ACTIVITY="$(find source -type f -name MainActivity.kt -print -quit)"
           sed -i 's/Intent\.CATEGORY_APP_ALARM/"android.intent.category.APP_ALARM"/' "$MAIN_ACTIVITY"
 
+      - name: Apply narrow widget host lifecycle fix
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import os
+
+          project = Path(os.environ["PROJECT_DIR"])
+          candidates = list(project.rglob("WidgetHolder.kt"))
+          if len(candidates) != 1:
+              raise SystemExit(f"Expected one WidgetHolder.kt, found {len(candidates)}")
+          path = candidates[0]
+          source = path.read_text()
+          old = """    fun startListening() {
+          if (listening) return
+          listening = true
+          runCatching { host.startListening() }
+      }"""
+          new = """    fun startListening() {
+          if (listening) return
+          // Only mark the host active after Android successfully starts its listener.
+          // If startup fails transiently, the next Activity onStart() can retry.
+          listening = runCatching { host.startListening() }.isSuccess
+      }"""
+          if old not in source:
+              raise SystemExit("WidgetHolder.startListening() did not match expected original code; refusing to patch")
+          path.write_text(source.replace(old, new, 1))
+          print(f"Applied guarded widget host listener startup in {path}")
+          PY
+
       - name: Build original project release APK
         run: |
           chmod +x "$PROJECT_DIR/gradlew"
