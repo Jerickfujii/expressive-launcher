@@ -32,6 +32,9 @@ jobs:
           fi
           echo "PROJECT_DIR=$(dirname "$GRADLEW")" >> "$GITHUB_ENV"
 
+      - name: Apply source fix
+        run: cp MainActivity.kt "$(find source -type f -name MainActivity.kt -print -quit)"
+
       - name: Build APK
         run: |
           chmod +x "$PROJECT_DIR/gradlew"
