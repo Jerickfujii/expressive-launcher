@@ -590,7 +590,11 @@ private fun AppsContent(apps: List<AppInfo>, drawer: DrawerState, onLaunch: (App
         ) {
             // Keep drawer items on the normal render path. Per-item placement and translation
             // animations were creating extra work while the drawer opened and during scrolling.
-            itemsIndexed(list, key = { _, app -> app.key }) { _, app ->
+            itemsIndexed(
+                items = list,
+                key = { _, app -> app.key },
+                contentType = { _, _ -> if (isGrid) "app_tile" else "app_row" },
+            ) { _, app ->
                 if (isGrid) AppTile(app, onLaunch, onMenu) else AppRow(app, onLaunch, onMenu)
             }
         }
