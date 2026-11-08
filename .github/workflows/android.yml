@@ -105,8 +105,8 @@ jobs:
           KOTLIN
           python3 - <<'PY'
           from pathlib import Path
-          import re
-          p = Path("'"$PROJECT_DIR"'/app/src/main/java/com/example/expressivelauncher/MainActivity.kt")
+          import os
+          p = Path(os.environ["PROJECT_DIR"]) / "app/src/main/java/com/example/expressivelauncher/MainActivity.kt"
           s = p.read_text()
           needle = "super.onCreate(savedInstanceState)"
           if "CrashCapture.install(applicationContext)" not in s:
@@ -115,6 +115,7 @@ jobs:
               s = s.replace(needle, needle + "\\n        CrashCapture.install(applicationContext)", 1)
               p.write_text(s)
           print("Crash capture installed from MainActivity")
+
           PY
 
       - name: Build APK
