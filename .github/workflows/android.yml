@@ -112,7 +112,7 @@ jobs:
           if "CrashCapture.install(applicationContext)" not in s:
               if needle not in s:
                   raise SystemExit("Could not find MainActivity onCreate super call; refusing unsafe patch")
-              s = s.replace(needle, needle + "\\n        CrashCapture.install(applicationContext)", 1)
+              s = s.replace(needle, needle + "\n        CrashCapture.install(applicationContext)", 1)
               p.write_text(s)
           print("Crash capture installed from MainActivity")
 
