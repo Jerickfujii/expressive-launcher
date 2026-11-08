@@ -31,6 +31,8 @@ jobs:
             exit 1
           fi
           echo "PROJECT_DIR=$(dirname "$GRADLEW")" >> "$GITHUB_ENV"
+          MAIN_ACTIVITY="$(find source -type f -name MainActivity.kt -print -quit)"
+          sed -i 's/Intent\.CATEGORY_APP_ALARM/"android.intent.category.APP_ALARM"/' "$MAIN_ACTIVITY"
 
       - name: Build original project
         run: |
