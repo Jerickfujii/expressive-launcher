@@ -37,15 +37,12 @@ jobs:
       - name: Inspect widget implementation
         run: |
           echo "=== WIDGET RELATED FILES ==="
-          find source -type f \\( -iname '*widget*.kt' -o -iname '*widget*.java' \\) -print
-          echo "=== HOST AND VIEW IMPLEMENTATIONS ==="
-          grep -R -n -E 'class WidgetHolder|fun createView|fun startListening|fun stopListening|AndroidView\(|updateAppWidgetSize|AppWidgetHostView' source --include='*.kt' | head -240
+          find source -type f -iname '*widget*.kt' -print || true
+          echo "=== WIDGET HOST REFERENCES ==="
+          grep -R -n 'WidgetHolder\|createView\|startListening\|stopListening\|AndroidView\|updateAppWidgetSize\|AppWidgetHostView' source --include='*.kt' | head -240 || true
           echo "=== WIDGET HOLDER SOURCE ==="
           HOLDER="$(find source -type f -name WidgetHolder.kt -print -quit)"
           if [ -n "$HOLDER" ]; then sed -n '1,320p' "$HOLDER"; fi
-          echo "=== WIDGET COMPOSABLE SOURCE ==="
-          grep -R -l 'AppWidgetHostView\|createView(ctx' source --include='*.kt' | while read f; do echo "--- $f"; grep -n -B 18 -A 45 'createView(ctx\|AppWidgetHostView\|AndroidView(' "$f" | head -220; done
-
 
       - name: Inspect animation and device compatibility paths
         run: |
