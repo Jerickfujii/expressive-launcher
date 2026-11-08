@@ -127,8 +127,13 @@ fun LauncherTheme(
 /** Схема движения с настройками пользователя: все пружины интерфейса проходят через неё. */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 private class TunedMotionScheme(private val base: MotionScheme, private val speed: Float, private val bounce: Float) : MotionScheme {
+    private val zte = isZteBladeA75Device()
     private fun <T> tune(spec: FiniteAnimationSpec<T>): FiniteAnimationSpec<T> =
-        if (spec is SpringSpec<T>) spring(tunedDamping(spec.dampingRatio, bounce), spec.stiffness * speed * speed, spec.visibilityThreshold) else spec
+        if (spec is SpringSpec<T>) spring(
+            tunedDamping(spec.dampingRatio, if (zte) bounce * 0.55f else bounce),
+            spec.stiffness * speed * speed * if (zte) 1.12f else 1f,
+            spec.visibilityThreshold,
+        ) else spec
     override fun <T> defaultSpatialSpec() = tune(base.defaultSpatialSpec<T>())
     override fun <T> fastSpatialSpec() = tune(base.fastSpatialSpec<T>())
     override fun <T> slowSpatialSpec() = tune(base.slowSpatialSpec<T>())
@@ -154,6 +159,11 @@ private class LiteMotionScheme(speed: Float) : MotionScheme {
     override fun <T> fastEffectsSpec(): FiniteAnimationSpec<T> = androidx.compose.animation.core.tween(fast)
     override fun <T> slowEffectsSpec(): FiniteAnimationSpec<T> = androidx.compose.animation.core.tween(slow)
 }
+
+/** Conservative rendering profile for the ZTE Blade A75 5G family. */
+fun isZteBladeA75Device(): Boolean =
+    Build.MANUFACTURER.equals("ZTE", ignoreCase = true) &&
+        (Build.MODEL.contains("A75", ignoreCase = true) || Build.MODEL.contains("Z2357N", ignoreCase = true))
 
 /** [bounce]: 0 — совсем без перелёта, 1 — исходная упругость. */
 fun tunedDamping(damping: Float, bounce: Float): Float = (1f - (1f - damping) * bounce).coerceIn(0.3f, 1f)
