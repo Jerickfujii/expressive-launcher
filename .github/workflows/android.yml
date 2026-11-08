@@ -22,107 +22,21 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v6
 
-      - name: Extract Android project
+      - name: Extract original Expressive Launcher
         run: |
           unzip -q expressive-launcher-test-ready.zip -d source
           GRADLEW="$(find source -type f -name gradlew -print -quit)"
           if [ -z "$GRADLEW" ]; then
-            echo "Could not find gradlew inside expressive-launcher-test-ready.zip"
+            echo "Could not find gradlew inside the original project ZIP"
             exit 1
           fi
           echo "PROJECT_DIR=$(dirname "$GRADLEW")" >> "$GITHUB_ENV"
 
-      - name: Apply uploaded Kotlin source files
-        run: |
-          for file in *.kt; do
-            [ -f "$file" ] || continue
-            target="$(find source -type f -name "$file" -print -quit)"
-            if [ -n "$target" ]; then
-              cp "$file" "$target"
-              echo "Applied $file to $target"
-            fi
-          done
-
-      - name: Inspect extracted project structure
-        run: |
-          echo "=== Kotlin source files ==="
-          find "$PROJECT_DIR" -type f -name '*.kt' | sort
-          echo "=== App resources ==="
-          find "$PROJECT_DIR/app/src/main" -maxdepth 4 -type f | sort | head -250
-
-      - name: Inspect launcher implementation
-        run: |
-          for file in \
-            "$PROJECT_DIR/app/src/main/java/com/example/expressivelauncher/ui/home/HomeScreen.kt" \
-            "$PROJECT_DIR/app/src/main/java/com/example/expressivelauncher/ui/home/HomeState.kt" \
-            "$PROJECT_DIR/app/src/main/java/com/example/expressivelauncher/data/CrashLog.kt" \
-            "$PROJECT_DIR/app/src/main/java/com/example/expressivelauncher/LauncherViewModel.kt" \
-            "$PROJECT_DIR/app/src/main/AndroidManifest.xml" \
-            "$PROJECT_DIR/app/src/main/res/values/strings.xml"; do
-            echo "===== $file ====="
-            sed -n '1,260p' "$file"
-          done
-
-      - name: Apply iOS Launcher identity and crash capture
-        run: |
-          STRINGS="$PROJECT_DIR/app/src/main/res/values/strings.xml"
-          sed -i 's#<string name="app_name">Expressive Launcher</string>#<string name="app_name">iOS Launcher</string>#' "$STRINGS"
-          MAIN="$PROJECT_DIR/app/src/main/java/com/example/expressivelauncher/MainActivity.kt"
-          cat > "$PROJECT_DIR/app/src/main/java/com/example/expressivelauncher/CrashCapture.kt" <<'KOTLIN'
-          package com.example.expressivelauncher
-
-          import android.content.Context
-          import java.io.File
-          import java.io.PrintWriter
-          import java.io.StringWriter
-          import kotlin.system.exitProcess
-
-          object CrashCapture {
-              @Volatile private var installed = false
-
-              @Synchronized
-              fun install(context: Context) {
-                  if (installed) return
-                  installed = true
-                  val appContext = context.applicationContext
-                  val previous = Thread.getDefaultUncaughtExceptionHandler()
-                  Thread.setDefaultUncaughtExceptionHandler { thread, error ->
-                      try {
-                          val trace = StringWriter().also { error.printStackTrace(PrintWriter(it)) }.toString()
-                          File(appContext.filesDir, "crash-last.txt").writeText(
-                              "iOS Launcher crash\\nThread: ${thread.name}\\nTime: ${System.currentTimeMillis()}\\n\\n$trace"
-                          )
-                      } catch (_: Throwable) {
-                      }
-                      if (previous != null) previous.uncaughtException(thread, error)
-                      else {
-                          android.os.Process.killProcess(android.os.Process.myPid())
-                          exitProcess(10)
-                      }
-                  }
-              }
-          }
-          KOTLIN
-          python3 - <<'PY'
-          from pathlib import Path
-          import os
-          p = Path(os.environ["PROJECT_DIR"]) / "app/src/main/java/com/example/expressivelauncher/MainActivity.kt"
-          s = p.read_text()
-          needle = "super.onCreate(savedInstanceState)"
-          if "CrashCapture.install(applicationContext)" not in s:
-              if needle not in s:
-                  raise SystemExit("Could not find MainActivity onCreate super call; refusing unsafe patch")
-              s = s.replace(needle, needle + "\n        CrashCapture.install(applicationContext)", 1)
-              p.write_text(s)
-          print("Crash capture installed from MainActivity")
-
-          PY
-
-      - name: Build APK
+      - name: Build original project
         run: |
           chmod +x "$PROJECT_DIR/gradlew"
           cd "$PROJECT_DIR"
-          ./gradlew :app:assembleDebug
+          ./gradlew :app:assembleDebug --stacktrace
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
