@@ -115,7 +115,11 @@ import com.example.expressivelauncher.ui.components.toComposeShape
 @Composable
 private fun <T> tunedSpring(damping: Float, stiffness: Float): androidx.compose.animation.core.SpringSpec<T> {
     val fx = com.example.expressivelauncher.ui.LocalFx.current
-    return spring(com.example.expressivelauncher.ui.theme.tunedDamping(damping, fx.bounce), stiffness * fx.speed * fx.speed)
+    val zte = com.example.expressivelauncher.ui.theme.isZteBladeA75Device()
+    return spring(
+        com.example.expressivelauncher.ui.theme.tunedDamping(damping, if (zte) fx.bounce * 0.55f else fx.bounce),
+        stiffness * fx.speed * fx.speed * if (zte) 1.12f else 1f,
+    )
 }
 
 // ---------------------------------------------------------------- фигуры
