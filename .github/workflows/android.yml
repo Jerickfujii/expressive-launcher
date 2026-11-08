@@ -46,6 +46,19 @@ jobs:
           echo "=== WIDGET COMPOSABLE SOURCE ==="
           grep -R -l 'AppWidgetHostView\|createView(ctx' source --include='*.kt' | while read f; do echo "--- $f"; grep -n -B 18 -A 45 'createView(ctx\|AppWidgetHostView\|AndroidView(' "$f" | head -220; done
 
+
+      - name: Inspect animation and device compatibility paths
+        run: |
+          echo "=== ANIMATION AND FRAME TIMING ==="
+          grep -R -n -E 'animate[A-Z]|AnimatedVisibility|AnimatedContent|spring\\(|tween\\(|withFrameNanos|Choreographer|graphicsLayer|RenderEffect|Blur' source --include='*.kt' | head -320 || true
+          echo "=== DEVICE-SPECIFIC OPTIMIZATIONS ==="
+          grep -R -n -E 'isZteBladeA75|Z2357N|Build\\.MANUFACTURER|Build\\.MODEL|PowerManager|isPowerSaveMode|areAnimatorsEnabled' source --include='*.kt' | head -220 || true
+          echo "=== CRASH AND LIFECYCLE HANDLING ==="
+          grep -R -n -E 'CrashLog|uncaughtException|Thread\\.setDefaultUncaughtExceptionHandler|onStart\\(|onStop\\(|onDestroy\\(|DisposableEffect|onRelease' source --include='*.kt' | head -260 || true
+          echo "=== BUILD CONFIGURATION ==="
+          find source -type f \\( -name 'build.gradle' -o -name 'build.gradle.kts' -o -name 'gradle.properties' \\) -print
+          grep -R -n -E 'minSdk|targetSdk|compileSdk|jvmTarget|composeCompiler|kotlinOptions|freeCompilerArgs' source --include='*.gradle' --include='*.gradle.kts' --include='gradle.properties' | head -180 || true
+
       - name: Build original project release APK
         run: |
           chmod +x "$PROJECT_DIR/gradlew"
