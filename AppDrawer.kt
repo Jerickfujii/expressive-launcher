@@ -583,15 +583,10 @@ private fun AppsContent(apps: List<AppInfo>, drawer: DrawerState, onLaunch: (App
             contentPadding = PaddingValues(start = 12.dp, end = if (showScroller) 44.dp else 12.dp, top = 4.dp, bottom = if (LocalPicked.current.isNotEmpty()) 100.dp else 16.dp),
             verticalArrangement = Arrangement.spacedBy(2.dp),
         ) {
-            itemsIndexed(list, key = { _, app -> app.key }) { i, app ->
-                // Ряды догоняют шторку друг за другом: каскад идёт за пальцем. В открытом меню расчёта нет совсем
-                val motion = Modifier.animateItem().graphicsLayer {
-                    val rest = 1f - drawer.progress
-                    if (rest <= 0f) return@graphicsLayer
-                    val depth = ((i - state.firstVisibleItemIndex) / columns).coerceIn(0, 6) + 1
-                    translationY = rest * depth * 56.dp.toPx()
-                }
-                if (isGrid) AppTile(app, onLaunch, onMenu, motion) else AppRow(app, onLaunch, onMenu, motion)
+            // Keep drawer items on the normal render path. Per-item placement and translation
+            // animations were creating extra work while the drawer opened and during scrolling.
+            itemsIndexed(list, key = { _, app -> app.key }) { _, app ->
+                if (isGrid) AppTile(app, onLaunch, onMenu) else AppRow(app, onLaunch, onMenu)
             }
         }
         if (showScroller) {
