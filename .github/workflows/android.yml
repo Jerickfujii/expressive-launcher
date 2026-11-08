@@ -50,6 +50,19 @@ jobs:
           echo "=== App resources ==="
           find "$PROJECT_DIR/app/src/main" -maxdepth 4 -type f | sort | head -250
 
+      - name: Inspect launcher implementation
+        run: |
+          for file in \
+            "$PROJECT_DIR/app/src/main/java/com/example/expressivelauncher/ui/home/HomeScreen.kt" \
+            "$PROJECT_DIR/app/src/main/java/com/example/expressivelauncher/ui/home/HomeState.kt" \
+            "$PROJECT_DIR/app/src/main/java/com/example/expressivelauncher/data/CrashLog.kt" \
+            "$PROJECT_DIR/app/src/main/java/com/example/expressivelauncher/LauncherViewModel.kt" \
+            "$PROJECT_DIR/app/src/main/AndroidManifest.xml" \
+            "$PROJECT_DIR/app/src/main/res/values/strings.xml"; do
+            echo "===== $file ====="
+            sed -n '1,260p' "$file"
+          done
+
       - name: Build APK
         run: |
           chmod +x "$PROJECT_DIR/gradlew"
