@@ -559,7 +559,7 @@ class MainActivity : ComponentActivity(), HomeActions {
         try {
             startActivity(
                 Intent(Intent.ACTION_MAIN)
-                    .addCategory(Intent.CATEGORY_APP_ALARM)
+                    .addCategory("android.intent.category.APP_ALARM")
                     .addFlags(flags)
             )
         } catch (_: ActivityNotFoundException) {
