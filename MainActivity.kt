@@ -290,7 +290,7 @@ class MainActivity : ComponentActivity(), HomeActions {
             }
             val homeAlpha by androidx.compose.animation.core.animateFloatAsState(if (overGlass) 0f else 1f, label = "homeUnderGlass")
             androidx.compose.runtime.LaunchedEffect(overGlass, settings.blurStrength) {
-                overlayBlurDp = if (overGlass) (48f * settings.blurStrength).toInt().coerceIn(8, 96) else 0
+                overlayBlurDp = if (overGlass) ((if (isZteBladeA75()) 22f else 48f) * settings.blurStrength).toInt().coerceIn(6, if (isZteBladeA75()) 28 else 96) else 0
                 applyBlur()
             }
             // Настоящее жидкое стекло (Android 13+) — только когда лаунчер сам рисует обои: пикселей живых обоев у него нет
@@ -575,8 +575,12 @@ class MainActivity : ComponentActivity(), HomeActions {
         } catch (_: ActivityNotFoundException) { toast(R.string.no_browser) }
     }
 
+    private fun isZteBladeA75(): Boolean =
+        Build.MANUFACTURER.equals("ZTE", ignoreCase = true) &&
+            (Build.MODEL.contains("A75", ignoreCase = true) || Build.MODEL.contains("Z2357N", ignoreCase = true))
+
     override fun setBlur(radiusDp: Int) {
-        homeBlurDp = radiusDp
+        homeBlurDp = if (isZteBladeA75()) radiusDp.coerceAtMost(24) else radiusDp
         applyBlur()
     }
 
