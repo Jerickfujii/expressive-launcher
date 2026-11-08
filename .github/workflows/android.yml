@@ -43,6 +43,13 @@ jobs:
             fi
           done
 
+      - name: Inspect extracted project structure
+        run: |
+          echo "=== Kotlin source files ==="
+          find "$PROJECT_DIR" -type f -name '*.kt' | sort
+          echo "=== App resources ==="
+          find "$PROJECT_DIR/app/src/main" -maxdepth 4 -type f | sort | head -250
+
       - name: Build APK
         run: |
           chmod +x "$PROJECT_DIR/gradlew"
