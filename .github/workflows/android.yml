@@ -33,6 +33,19 @@ jobs:
           echo "PROJECT_DIR=$(dirname "$GRADLEW")" >> "$GITHUB_ENV"
           MAIN_ACTIVITY="$(find source -type f -name MainActivity.kt -print -quit)"
           sed -i 's/Intent\.CATEGORY_APP_ALARM/"android.intent.category.APP_ALARM"/' "$MAIN_ACTIVITY"
+          APP_SRC="$(dirname "$MAIN_ACTIVITY")"
+          cp "$GITHUB_WORKSPACE/Theme.kt" "$APP_SRC/ui/theme/Theme.kt"
+          cp "$GITHUB_WORKSPACE/SettingsComponents.kt" "$APP_SRC/ui/settings/SettingsComponents.kt"
+          cp "$GITHUB_WORKSPACE/AppDrawer.kt" "$APP_SRC/ui/drawer/AppDrawer.kt"
+          HOME_SCREEN="$APP_SRC/ui/home/HomeScreen.kt"
+          python3 - "$HOME_SCREEN" <<'PY'
+          import pathlib, sys
+          p = pathlib.Path(sys.argv[1])
+          s = p.read_text()
+          s = s.replace("(44.dp * settings.blurStrength).toPx()", "((if (com.example.expressivelauncher.ui.theme.isZteBladeA75Device()) 26.dp else 44.dp) * settings.blurStrength).toPx()")
+          s = s.replace("overlayBlur * 30.dp.toPx() * settings.blurStrength", "overlayBlur * (if (com.example.expressivelauncher.ui.theme.isZteBladeA75Device()) 18.dp.toPx() else 30.dp.toPx()) * settings.blurStrength")
+          p.write_text(s)
+          PY
 
       - name: Inspect widget implementation
         run: |
