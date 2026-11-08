@@ -151,6 +151,11 @@ import com.example.expressivelauncher.ui.home.DrawerState
 import com.example.expressivelauncher.ui.home.HomeActions
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import android.os.Build
+
+private fun isZteBladeA75(): Boolean =
+    Build.MANUFACTURER.equals("ZTE", ignoreCase = true) &&
+        (Build.MODEL.contains("A75", ignoreCase = true) || Build.MODEL.contains("Z2357N", ignoreCase = true))
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
